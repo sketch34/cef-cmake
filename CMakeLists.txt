@@ -97,10 +97,12 @@ add_custom_command(TARGET cefdll_wrapper POST_BUILD
         ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/locales
         ${CEF_CMAKE_OUTPUT_DIR}/locales
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/chrome_100_percent.pak
-        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/chrome_200_percent.pak
+        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/cef.pak
+        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/cef_100_percent.pak
+        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/cef_200_percent.pak
+        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/cef_extensions.pak
+        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/devtools_resources.pak
         ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/icudtl.dat
-        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/resources.pak
         ${CEF_CMAKE_OUTPUT_DIR}
 )
 

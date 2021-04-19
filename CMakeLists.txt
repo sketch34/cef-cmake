@@ -12,6 +12,8 @@ endif()
 if(NOT CEF_VERSION)
     set(CEF_VERSION 75.1.4+g4210896+chromium-75.0.3770.100)
     message(STATUS "CEF-CMake: CEF_VERSION not specified. Defaulting to ${CEF_VERSION}")
+else()
+    message(STATUS "CEF-CMake: Using CEF_VERSION: ${CEF_VERSION}")
 endif()
 
 if(NOT CEF_CMAKE_OUTPUT_DIR)
@@ -42,6 +44,7 @@ elseif(CEF_CMAKE_OS_WINDOWS)
 else()
     message(FATAL_ERROR "CEF-CMake: Download platform not supported yet")
 endif()
+
 
 set(cefArchiveURL https://cef-builds.spotifycdn.com/${cefName}.tar.bz2)
 
@@ -94,12 +97,10 @@ add_custom_command(TARGET cefdll_wrapper POST_BUILD
         ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/locales
         ${CEF_CMAKE_OUTPUT_DIR}/locales
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/cef.pak
-        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/cef_100_percent.pak
-        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/cef_200_percent.pak
-        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/cef_extensions.pak
-        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/devtools_resources.pak
+        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/chrome_100_percent.pak
+        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/chrome_200_percent.pak
         ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/icudtl.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/resources.pak
         ${CEF_CMAKE_OUTPUT_DIR}
 )
 
@@ -167,7 +168,6 @@ elseif(CEF_CMAKE_OS_WINDOWS)
             ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/libcef.dll
             ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/libEGL.dll
             ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/libGLESv2.dll
-            ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/natives_blob.bin
             ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/snapshot_blob.bin
             ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/v8_context_snapshot.bin
             ${CEF_CMAKE_OUTPUT_DIR}

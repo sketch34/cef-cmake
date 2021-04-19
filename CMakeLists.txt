@@ -23,9 +23,9 @@ if(NOT CEF_CMAKE_OUTPUT_DIR)
     message(STATUS "CEF-CMake: CEF_CMAKE_OUTPUT_DIR was not specified. Defaulting to CMAKE_RUNTIME_OUTPUT_DIRECTORY: ${CEF_CMAKE_OUTPUT_DIR}")
 endif()
 
-if(MSVC)
-    set(CEF_CMAKE_OUTPUT_DIR ${CEF_CMAKE_OUTPUT_DIR}/$<CONFIG>)
-endif()
+# if(MSVC)
+#     set(CEF_CMAKE_OUTPUT_DIR ${CEF_CMAKE_OUTPUT_DIR}/$<CONFIG>)
+# endif()
 
 if(CEF_CMAKE_OS_LINUX)
     if(CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -43,7 +43,8 @@ else()
     message(FATAL_ERROR "CEF-CMake: Download platform not supported yet")
 endif()
 
-set(cefArchiveURL http://opensource.spotify.com/cefbuilds/${cefName}.tar.bz2)
+set(cefArchiveURL https://cef-builds.spotifycdn.com/${cefName}.tar.bz2)
+
 # fix the url as the version may contain pluses
 string(REGEX REPLACE "\\+" "%2B" cefArchiveURL ${cefArchiveURL})
 set(cefArchive ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}.tar.bz2)

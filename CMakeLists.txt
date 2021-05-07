@@ -19,6 +19,9 @@ endif()
 # Extract CEF major version number.
 string(REGEX MATCH "^[0-9]+" CEF_MAJOR_VERSION ${CEF_VERSION})
 
+# CEF binary source dirs are named "Debug" or "Release".
+string(REPLACE "RelWithDebInfo" "Release" CEF_BIN_BUILD_DIR ${CMAKE_BUILD_TYPE})
+
 if(NOT CEF_CMAKE_OUTPUT_DIR)
     if(NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
         message(SEND_ERROR "CEF-CMake: Neither CEF_CMAKE_OUTPUT_DIR nor CMAKE_RUNTIME_OUTPUT_DIRECTORY was specified. You need to specify one for the binary assets of CEF to be copied.")
@@ -29,7 +32,7 @@ if(NOT CEF_CMAKE_OUTPUT_DIR)
 endif()
 
 # if(MSVC)
-#     set(CEF_CMAKE_OUTPUT_DIR ${CEF_CMAKE_OUTPUT_DIR}/$<CONFIG>)
+#     set(CEF_CMAKE_OUTPUT_DIR ${CEF_CMAKE_OUTPUT_DIR}/${CEF_BIN_BUILD_DIR})
 # endif()
 
 if(CEF_CMAKE_OS_LINUX)
@@ -109,17 +112,17 @@ add_custom_command(TARGET cefdll_wrapper POST_BUILD
         ${CEF_CMAKE_OUTPUT_DIR}
 )
 
-set(CEF_BINARIES ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/chrome_elf.dll
-                    ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/d3dcompiler_47.dll
-                    ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/libcef.dll
-                    ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/libEGL.dll
-                    ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/libGLESv2.dll
-                    ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/snapshot_blob.bin
-                    ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/v8_context_snapshot.bin)
+set(CEF_BINARIES ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/${CEF_BIN_BUILD_DIR}/chrome_elf.dll
+                    ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/${CEF_BIN_BUILD_DIR}/d3dcompiler_47.dll
+                    ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/${CEF_BIN_BUILD_DIR}/libcef.dll
+                    ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/${CEF_BIN_BUILD_DIR}/libEGL.dll
+                    ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/${CEF_BIN_BUILD_DIR}/libGLESv2.dll
+                    ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/${CEF_BIN_BUILD_DIR}/snapshot_blob.bin
+                    ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/${CEF_BIN_BUILD_DIR}/v8_context_snapshot.bin)
 
 # Could actually be LESS 89.
 if(${CEF_MAJOR_VERSION} LESS 76)
-    list(APPEND CEF_BINARIES ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/natives_blob.bin)
+    list(APPEND CEF_BINARIES ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/${CEF_BIN_BUILD_DIR}/natives_blob.bin)
 endif()
 
 if(CEF_CMAKE_OS_LINUX)
@@ -135,7 +138,7 @@ if(CEF_CMAKE_OS_LINUX)
         COMMAND ${CMAKE_COMMAND} -E
             make_directory ${CEF_CMAKE_OUTPUT_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy_directory
-            ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/swiftshader
+            ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/${CEF_BIN_BUILD_DIR}/swiftshader
             ${CEF_CMAKE_OUTPUT_DIR}/swiftshader
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             ${CEF_BINARIES}
@@ -172,7 +175,7 @@ elseif(CEF_CMAKE_OS_WINDOWS)
         COMMAND ${CMAKE_COMMAND} -E
             make_directory ${CEF_CMAKE_OUTPUT_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy_directory
-            ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/swiftshader
+            ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/${CEF_BIN_BUILD_DIR}/swiftshader
             ${CEF_CMAKE_OUTPUT_DIR}/swiftshader
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             ${CEF_BINARIES}

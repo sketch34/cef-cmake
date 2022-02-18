@@ -17,7 +17,9 @@ else()
 endif()
 
 # Extract CEF major version number.
-string(REGEX MATCH "^[0-9]+" CEF_MAJOR_VERSION ${CEF_VERSION})
+if(NOT CEF_MAJOR_VERSION)
+    string(REGEX MATCH "^[0-9]+" CEF_MAJOR_VERSION ${CEF_VERSION})
+endif()
 
 # CEF binary source dirs are named "Debug" or "Release".
 string(REPLACE "RelWithDebInfo" "Release" CEF_BIN_BUILD_DIR ${CMAKE_BUILD_TYPE})
@@ -95,21 +97,16 @@ target_include_directories(cefdll_wrapper
     INTERFACE include
 )
 
+# Copy all the files in Resources for now (simpler), this may have some adverse
+# effects if we are building locally and have some extra things in there
 add_custom_command(TARGET cefdll_wrapper POST_BUILD
     COMMENT "cefdll_wrapper: Copying CEF resources"
     COMMAND ${CMAKE_COMMAND} -E
         make_directory ${CEF_CMAKE_OUTPUT_DIR}
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/locales
-        ${CEF_CMAKE_OUTPUT_DIR}/locales
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/cef.pak
-        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/cef_100_percent.pak
-        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/cef_200_percent.pak
-        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/cef_extensions.pak
-        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/devtools_resources.pak
-        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/icudtl.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources
         ${CEF_CMAKE_OUTPUT_DIR}
+
 )
 
 set(CEF_BINARIES ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/${CEF_BIN_BUILD_DIR}/chrome_elf.dll

@@ -58,7 +58,7 @@ set(cefArchiveURL https://cef-builds.spotifycdn.com/${cefName}.tar.bz2)
 
 # fix the url as the version may contain pluses
 string(REGEX REPLACE "\\+" "%2B" cefArchiveURL ${cefArchiveURL})
-if(EXISTS ${CEF_BINARY_FOLDER})
+if(CEF_BINARY_FOLDER)
     message(STATUS "CEF-CMake: Using CEF Binary Folder: ${CEF_BINARY_FOLDER}")
     set(cefFolder ${CEF_BINARY_FOLDER})
 else()

@@ -71,7 +71,7 @@ set(cefArchiveFolder ${cefFolder}/${cefName})
 # check if its already there
 if(NOT EXISTS ${cefArchiveFolder})
     # don't download if the user specified the binary folder
-    if(NOT EXISTS ${CEF_BINARY_FOLDER} AND NOT EXISTS ${cefArchive})
+    if(NOT CEF_BINARY_FOLDER AND NOT EXISTS ${cefArchive})
         # download cef version
         message(STATUS "CEF-CMake: Downloading CEF ${cefArchiveURL}")
         file(DOWNLOAD ${cefArchiveURL} ${cefArchive}

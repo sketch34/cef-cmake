@@ -58,25 +58,39 @@ set(cefArchiveURL https://cef-builds.spotifycdn.com/${cefName}.tar.bz2)
 
 # fix the url as the version may contain pluses
 string(REGEX REPLACE "\\+" "%2B" cefArchiveURL ${cefArchiveURL})
-set(cefArchive ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}.tar.bz2)
-
-if(NOT EXISTS ${cefArchive})
-    # download cef version
-    message(STATUS "CEF-CMake: Downloading CEF ${cefArchiveURL}")
-    file(DOWNLOAD ${cefArchiveURL} ${cefArchive}
-        SHOW_PROGRESS
-    )
-
-    # ... and extract
-    message(STATUS "CEF-CMake: Extracting ${cefArchive}")
-    execute_process(
-        COMMAND ${CMAKE_COMMAND} -E tar xzf ${cefArchive}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    )
+if(CEF_BINARY_FOLDER)
+    message(STATUS "CEF-CMake: Using CEF Binary Folder: ${CEF_BINARY_FOLDER}")
+    set(cefFolder ${CEF_BINARY_FOLDER})
+else()
+    set(cefFolder ${CMAKE_CURRENT_SOURCE_DIR})
 endif()
 
+set(cefArchive ${cefFolder}/${cefName}.tar.bz2)
+set(cefArchiveFolder ${cefFolder}/${cefName})
+
+# check if its already there
+if(NOT EXISTS ${cefArchiveFolder})
+    # don't download if the user specified the binary folder
+    if(NOT CEF_BINARY_FOLDER AND NOT EXISTS ${cefArchive})
+        # download cef version
+        message(STATUS "CEF-CMake: Downloading CEF ${cefArchiveURL}")
+        file(DOWNLOAD ${cefArchiveURL} ${cefArchive}
+            SHOW_PROGRESS
+        )
+    endif()
+    if(EXISTS ${cefArchive})
+        # ... and extract
+        message(STATUS "CEF-CMake: Extracting ${cefArchive}")
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -E tar xzf ${cefArchive}
+            WORKING_DIRECTORY ${cefFolder}
+        )
+    else()
+       message(SEND_ERROR "CEF-CMake: Could not locate archive ${cefArchive}") 
+    endif()
+endif()
 set(srcs)
-set(wdir ${cefName}/libcef_dll)
+set(wdir ${cefArchiveFolder}/libcef_dll)
 file(GLOB_RECURSE srcs "${wdir}/*.cc" "${wdir}/*.mm" "${wdir}/*.h" "${cefName}/include/*.h")
 
 add_library(cefdll_wrapper STATIC ${srcs})
@@ -93,7 +107,7 @@ target_compile_definitions(cefdll_wrapper
 )
 
 target_include_directories(cefdll_wrapper
-    PUBLIC ${cefName}
+    PUBLIC ${cefArchiveFolder}
     INTERFACE include
 )
 
@@ -104,30 +118,30 @@ add_custom_command(TARGET cefdll_wrapper POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E
         make_directory ${CEF_CMAKE_OUTPUT_DIR}
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources
+        ${cefArchiveFolder}/Resources
         ${CEF_CMAKE_OUTPUT_DIR}
 
 )
 
-set(CEF_BINARIES ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/${CEF_BIN_BUILD_DIR}/chrome_elf.dll
-                    ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/${CEF_BIN_BUILD_DIR}/d3dcompiler_47.dll
-                    ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/${CEF_BIN_BUILD_DIR}/libcef.dll
-                    ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/${CEF_BIN_BUILD_DIR}/libEGL.dll
-                    ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/${CEF_BIN_BUILD_DIR}/libGLESv2.dll
-                    ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/${CEF_BIN_BUILD_DIR}/snapshot_blob.bin
-                    ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/${CEF_BIN_BUILD_DIR}/v8_context_snapshot.bin)
+set(CEF_BINARIES ${cefArchiveFolder}/${CEF_BIN_BUILD_DIR}/chrome_elf.dll
+                    ${cefArchiveFolder}/${CEF_BIN_BUILD_DIR}/d3dcompiler_47.dll
+                    ${cefArchiveFolder}/${CEF_BIN_BUILD_DIR}/libcef.dll
+                    ${cefArchiveFolder}/${CEF_BIN_BUILD_DIR}/libEGL.dll
+                    ${cefArchiveFolder}/${CEF_BIN_BUILD_DIR}/libGLESv2.dll
+                    ${cefArchiveFolder}/${CEF_BIN_BUILD_DIR}/snapshot_blob.bin
+                    ${cefArchiveFolder}/${CEF_BIN_BUILD_DIR}/v8_context_snapshot.bin)
 
 # Could actually be LESS 89.
 if(${CEF_MAJOR_VERSION} LESS 76)
-    list(APPEND CEF_BINARIES ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/${CEF_BIN_BUILD_DIR}/natives_blob.bin)
+    list(APPEND CEF_BINARIES ${cefArchiveFolder}/${CEF_BIN_BUILD_DIR}/natives_blob.bin)
 endif()
 
 if(CEF_CMAKE_OS_LINUX)
     target_link_libraries(cefdll_wrapper INTERFACE
         X11
         pthread
-        debug ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Debug/libcef.so
-        optimized ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Release/libcef.so
+        debug ${cefArchiveFolder}/Debug/libcef.so
+        optimized ${cefArchiveFolder}/Release/libcef.so
     )
 
     add_custom_command(TARGET cefdll_wrapper POST_BUILD
@@ -135,7 +149,7 @@ if(CEF_CMAKE_OS_LINUX)
         COMMAND ${CMAKE_COMMAND} -E
             make_directory ${CEF_CMAKE_OUTPUT_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy_directory
-            ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/${CEF_BIN_BUILD_DIR}/swiftshader
+            ${cefArchiveFolder}/${CEF_BIN_BUILD_DIR}/swiftshader
             ${CEF_CMAKE_OUTPUT_DIR}/swiftshader
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             ${CEF_BINARIES}
@@ -163,8 +177,8 @@ elseif(CEF_CMAKE_OS_WINDOWS)
         rpcrt4.lib
         shlwapi.lib
         ws2_32.lib
-        debug ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Debug/libcef.lib
-        optimized ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Release/libcef.lib
+        debug ${cefArchiveFolder}/Debug/libcef.lib
+        optimized ${cefArchiveFolder}/Release/libcef.lib
     )
 
     add_custom_command(TARGET cefdll_wrapper POST_BUILD
@@ -172,7 +186,7 @@ elseif(CEF_CMAKE_OS_WINDOWS)
         COMMAND ${CMAKE_COMMAND} -E
             make_directory ${CEF_CMAKE_OUTPUT_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy_directory
-            ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/${CEF_BIN_BUILD_DIR}/swiftshader
+            ${cefArchiveFolder}/${CEF_BIN_BUILD_DIR}/swiftshader
             ${CEF_CMAKE_OUTPUT_DIR}/swiftshader
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             ${CEF_BINARIES}
@@ -192,8 +206,8 @@ elseif(CEF_CMAKE_OS_WINDOWS)
             version.lib
             wbemuuid.lib
             winmm.lib
-            debug ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Debug/cef_sandbox.lib
-            optimized ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Release/cef_sandbox.lib
+            debug ${cefArchiveFolder}/Debug/cef_sandbox.lib
+            optimized ${cefArchiveFolder}/Release/cef_sandbox.lib
         )
     endif()
 

@@ -53,8 +53,12 @@ else()
     message(FATAL_ERROR "CEF-CMake: Download platform not supported yet")
 endif()
 
-
-set(cefArchiveURL https://cef-builds.spotifycdn.com/${cefName}.tar.bz2)
+if(CEF_ARCHIVE_URL)
+    message(STATUS "CEF-CMake: Using custom CEF Archive URL: ${CEF_ARCHIVE_URL}")
+    set(cefArchiveURL ${CEF_ARCHIVE_URL}/${cefName}.tar.bz2)
+else()
+    set(cefArchiveURL https://cef-builds.spotifycdn.com/${cefName}.tar.bz2)
+endif()
 
 # fix the url as the version may contain pluses
 string(REGEX REPLACE "\\+" "%2B" cefArchiveURL ${cefArchiveURL})
